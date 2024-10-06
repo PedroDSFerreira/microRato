@@ -1,11 +1,13 @@
-from agent_state import RunState, StopState, WaitState, ReturnState
-from croblink import CRobLinkAngs
+import math
 
+from agent_state import ReturnState, RunState, StopState, WaitState
+from croblink import CRobLinkAngs
 
 CENTER_ID = 0
 LEFT_ID = 1
 RIGHT_ID = 2
 BACK_ID = 3
+THRESHOLD = 0.5
 
 
 class Agent(CRobLinkAngs):
@@ -21,11 +23,14 @@ class Agent(CRobLinkAngs):
             quit()
 
         self.readSensors()
-        self.avg_distance = (self.measures.irSensor[LEFT_ID] + self.measures.irSensor[RIGHT_ID])/2
+        self.avg_distance = self.getAvgRealDistance()
+        assert self.avg_distance is not None
         print("Average distance: ", self.avg_distance)
 
         while True:
             self.readSensors()
+
+            print("Average distance: ", self.getAvgRealDistance())
 
             if self.measures.endLed:
                 print(self.robName + " exiting")
@@ -40,12 +45,37 @@ class Agent(CRobLinkAngs):
 
             self.state.execute(self)
 
+    # def getError(self):
+    #     # for each side, calculate the distance to the wall based on the angle
+    #     # and get the diference between the reference value
+    #     right_error = self.measures.irSensor[RIGHT_ID]
+
+    def getRealDistance(self, idx, value):
+        distance = value * math.sin(math.radians(self.angs[idx]))
+        return distance if distance > THRESHOLD else None
+
+    def getAvgRealDistance(self):
+        right_distance = self.getRealDistance(
+            RIGHT_ID, self.measures.irSensor[RIGHT_ID]
+        )
+        left_distance = self.getRealDistance(
+            LEFT_ID, self.measures.irSensor[LEFT_ID]
+        )
+
+        return (
+            (right_distance + left_distance) / 2
+            if right_distance is not None and left_distance is not None
+            else right_distance
+            if right_distance is not None
+            else left_distance
+        )
+
     def wander(self):
         if (
-            self.measures.irSensor[CENTER_ID] > 5.0
-            or self.measures.irSensor[LEFT_ID] > 5.0
-            or self.measures.irSensor[RIGHT_ID] > 5.0
-            or self.measures.irSensor[BACK_ID] > 5.0
+            self.measures.irSensor[CENTER_ID] > THRESHOLD
+            or self.measures.irSensor[LEFT_ID] > THRESHOLD
+            or self.measures.irSensor[LEFT_ID] > THRESHOLD
+            or self.measures.irSensor[LEFT_ID] > THRESHOLD
         ):
             print("Rotate left")
             self.driveMotors(-0.1, +0.1)
