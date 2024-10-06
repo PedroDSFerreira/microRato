@@ -7,6 +7,7 @@ LEFT_ID = 1
 RIGHT_ID = 2
 BACK_ID = 3
 
+
 class Agent(CRobLinkAngs):
     def __init__(self, rob_name, rob_id, angles, host):
         super().__init__(rob_name, rob_id, angles, host)
@@ -19,16 +20,16 @@ class Agent(CRobLinkAngs):
             print("Connection refused or error")
             quit()
 
+        self.readSensors()
+        self.avg_distance = (self.measures.irSensor[LEFT_ID] + self.measures.irSensor[RIGHT_ID])/2
+        print("Average distance: ", self.avg_distance)
+
         while True:
             self.readSensors()
 
             if self.measures.endLed:
                 print(self.robName + " exiting")
                 quit()
-
-            if not self.avg_distance:
-                self.avg_distance = (self.measures.irSensor[LEFT_ID] + self.measures.irSensor[RIGHT_ID])/2
-                print("Average distance: ", self.avg_distance)
 
             if isinstance(self.state, StopState) and self.measures.start:
                 self.state = self.stopped_state
