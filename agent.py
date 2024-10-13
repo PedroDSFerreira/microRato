@@ -13,7 +13,7 @@ class Agent(CRobLinkAngs):
         self.state = StopState()
         self.stopped_state = RunState()
         self.sensor_wall_distance = SW_DISTANCE
-        self.distances = [-1, -1, -1, -1]
+        self.distances = [-1.0, -1 - 0, -1.0, -1.0]
         self.sensor_buffer = SensorBuffer()
         self.decision_maker = DecisionMaker(self)
         self.movement_controller = MovementController(self)
@@ -22,7 +22,9 @@ class Agent(CRobLinkAngs):
         super().readSensors()
 
         for i in range(4):
-            raw_value = 1 / self.measures.irSensor[i]
+            raw_value = self.measures.irSensor[i]
+            raw_value = raw_value if raw_value != 0 else 0.0001
+
             if raw_value is not None:
                 self.sensor_buffer.add_sample(i, raw_value)
 
