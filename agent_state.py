@@ -1,18 +1,18 @@
-class AgentState:
+class BaseState:
     def execute(self, agent):
         raise NotImplementedError()
 
 
-class RunState(AgentState):
+class RunState(BaseState):
     def execute(self, agent):
         if agent.measures.visitingLed:
             agent.state = WaitState()
         if agent.measures.ground == 0:
             agent.setVisitingLed(True)
-        agent.wander()
+        agent.decision_maker.decideNextMove()
 
 
-class WaitState(AgentState):
+class WaitState(BaseState):
     def execute(self, agent):
         agent.setReturningLed(True)
         if agent.measures.visitingLed:
@@ -22,15 +22,18 @@ class WaitState(AgentState):
         agent.driveMotors(0.0, 0.0)
 
 
-class ReturnState(AgentState):
+class ReturnState(BaseState):
     def execute(self, agent):
         if agent.measures.visitingLed:
             agent.setVisitingLed(False)
         if agent.measures.returningLed:
             agent.setReturningLed(False)
-        agent.wander()
+
+        agent.state = RunState()
+        agent.state.execute(agent)
 
 
-class StopState(AgentState):
+class StopState(BaseState):
     def execute(self, agent):
-        pass
+        if agent.measures.start:
+            agent.state = agent.stopped_state
