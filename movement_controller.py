@@ -1,37 +1,56 @@
+import math
+
+SPEED = 0.1
+SPEED_DIFF = 0.05
+KP = 0.3
+
+
 class MovementController:
     def __init__(self, agent):
         self.agent = agent
 
     def moveForward(self):
-        """Move the robot forward, adjusting speed based on sensor readings."""
-        speed = self.calculateSpeed()
-        self.agent.driveMotors(speed, speed)
-        print("Moving forward with speed:", speed)
+        """Move the robot forward, adjusting direction based on sensor readings."""
+        error = self.agent.getDistError()
+        self.agent.driveMotors(SPEED - KP * error, SPEED + KP * error)
+        print("Moving forward")
 
     def makeLeftTurn(self):
         """Make the robot turn left."""
-        self.agent.driveMotors(-.5, .5)  # Example speeds for turning left
+        self.agent.driveMotors(
+            SPEED - SPEED_DIFF, SPEED + SPEED_DIFF
+        )  # Example speeds for turning left
         print("Making a left turn")
+        print("DONE")
 
     def makeRightTurn(self):
         """Make the robot turn right."""
-        self.agent.driveMotors(.5, -.5)  # Example speeds for turning right
+        self.agent.driveMotors(
+            SPEED + SPEED_DIFF, SPEED - SPEED_DIFF
+        )  # Example speeds for turning right
         print("Making a right turn")
+        print("DONE")
 
     def makeUTurn(self):
         """Make the robot perform a U-turn."""
-        self.agent.driveMotors(-1.0, 1.0)  # Example for a U-turn (turn in place)
+        self.rotate(180)
         print("Making a U-turn")
+        print("DONE")
+
+    def moveNoCorrection(self):
+        """Move the robot forward without any correction."""
+        self.agent.driveMotors(SPEED, SPEED)
+        print("Moving forward without correction")
+        print("DONE")
 
     def stop(self):
         """Stop the robot."""
         self.agent.driveMotors(0.0, 0.0)
         print("Stopping the robot")
 
-    def calculateSpeed(self):
-        """
-        Calculate the appropriate speed based on sensor readings.
-        For simplicity, this implementation moves at a constant speed,
-        but you could adjust it based on the environment.
-        """
-        return 1.0  # Return constant speed for now
+    def rotate(self, alpha):
+        it = math.ceil(math.radians(alpha) / SPEED)
+
+        for _ in range(it):
+            self.agent.driveMotors(SPEED, -SPEED)
+            self.agent.readSensors()

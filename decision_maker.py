@@ -2,7 +2,7 @@ CENTER_ID = 0
 LEFT_ID = 1
 RIGHT_ID = 2
 BACK_ID = 3
-FAR_THRESHOLD = 0.7
+FAR_THRESHOLD = 0.9
 CLOSE_THRESHOLD = 0.2
 
 
@@ -11,14 +11,14 @@ class DecisionMaker:
         self.agent = agent
 
     def decideNextMove(self):
-        if self.isCrossroad():
+        if self.isDeadEnd():
+            self.agent.movement_controller.makeUTurn()
+        elif self.isCrossroad():
             self.handleCrossroad()
         elif self.isRightTurn():
             self.agent.movement_controller.makeRightTurn()
         elif self.isLeftTurn():
             self.agent.movement_controller.makeLeftTurn()
-        elif self.isDeadEnd():
-            self.agent.movement_controller.makeUTurn()
         else:
             self.agent.movement_controller.moveForward()
 
@@ -45,5 +45,4 @@ class DecisionMaker:
 
     def handleCrossroad(self):
         """Handles decision-making at a crossroad."""
-        # For now, just move forward
-        self.agent.movement_controller.moveForward()
+        self.agent.movement_controller.moveNoCorrection()
