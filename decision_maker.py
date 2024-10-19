@@ -1,4 +1,4 @@
-from agent import CENTER_ID, CLOSE_THRESHOLD, FAR_THRESHOLD, LEFT_ID, RIGHT_ID
+from constants import CENTER_ID, CLOSE_THRESHOLD, FAR_THRESHOLD, LEFT_ID, RIGHT_ID
 
 
 class DecisionMaker:

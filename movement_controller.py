@@ -1,6 +1,6 @@
 import time
 
-from agent import CENTER_ID, CLOSE_THRESHOLD, LEFT_ID
+from constants import CENTER_ID, CLOSE_THRESHOLD, LEFT_ID
 
 SPEED = 0.10
 SPEED_TURN = 0.01
@@ -54,14 +54,15 @@ class MovementController:
             self.agent.readSensors()
 
     def makeSideTurn(self, direction):
-        for i in range(13):
+        A = 0.007
+        for i in range(14):
             if direction == LEFT_ID:
                 self.agent.driveMotors(
-                    SPEED - SPEED_TURN - i * 0.01, SPEED + SPEED_TURN + i * 0.01
+                    SPEED - SPEED_TURN - i * A, SPEED + SPEED_TURN + i * A
                 )
             else:
                 self.agent.driveMotors(
-                    SPEED + SPEED_TURN + i * 0.01, SPEED - SPEED_TURN - i * 0.01
+                    SPEED + SPEED_TURN + i * A, SPEED - SPEED_TURN - i * A
                 )
 
             self.agent.readSensors()

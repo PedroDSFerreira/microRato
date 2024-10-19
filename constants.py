@@ -1,0 +1,8 @@
+SW_DISTANCE = 0.4667  # distance from the side sensor to the wall
+CENTER_ID = 0
+LEFT_ID = 1
+RIGHT_ID = 2
+BACK_ID = 3
+FAR_THRESHOLD = 0.7
+CLOSE_THRESHOLD = 0.05
+UNBOUNDED_THRESHOLD = 1.0
