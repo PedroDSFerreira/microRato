@@ -1,8 +1,11 @@
-import math
+import time
 
-SPEED = 0.1
-SPEED_DIFF = 0.05
-KP = 0.3
+from agent import CENTER_ID, CLOSE_THRESHOLD, LEFT_ID
+
+SPEED = 0.10
+SPEED_TURN = 0.01
+KP = 0.09
+KD = 0.07
 
 
 class MovementController:
@@ -11,46 +14,58 @@ class MovementController:
 
     def moveForward(self):
         """Move the robot forward, adjusting direction based on sensor readings."""
-        error = self.agent.getDistError()
-        self.agent.driveMotors(SPEED - KP * error, SPEED + KP * error)
-        print("Moving forward")
+        current_error = self.agent.getDistError()
+        current_time = time.time()
+        dt = current_time - self.agent.prev_time
 
-    def makeLeftTurn(self):
-        """Make the robot turn left."""
-        self.agent.driveMotors(
-            SPEED - SPEED_DIFF, SPEED + SPEED_DIFF
-        )  # Example speeds for turning left
-        print("Making a left turn")
-        print("DONE")
+        if dt > 0:
+            error_derivative = (current_error - self.agent.prev_error) / dt
+        else:
+            error_derivative = 0
 
-    def makeRightTurn(self):
-        """Make the robot turn right."""
-        self.agent.driveMotors(
-            SPEED + SPEED_DIFF, SPEED - SPEED_DIFF
-        )  # Example speeds for turning right
-        print("Making a right turn")
-        print("DONE")
+        left_speed = SPEED - (KP * current_error + KD * error_derivative)
+        right_speed = SPEED + (KP * current_error + KD * error_derivative)
 
-    def makeUTurn(self):
-        """Make the robot perform a U-turn."""
-        self.rotate(180)
-        print("Making a U-turn")
-        print("DONE")
+        self.agent.driveMotors(left_speed, right_speed)
 
-    def moveNoCorrection(self):
-        """Move the robot forward without any correction."""
-        self.agent.driveMotors(SPEED, SPEED)
-        print("Moving forward without correction")
-        print("DONE")
+        self.agent.prev_error = current_error
+        self.agent.prev_time = current_time
 
     def stop(self):
         """Stop the robot."""
         self.agent.driveMotors(0.0, 0.0)
-        print("Stopping the robot")
 
-    def rotate(self, alpha):
-        it = math.ceil(math.radians(alpha) / SPEED)
-
-        for _ in range(it):
-            self.agent.driveMotors(SPEED, -SPEED)
+    def findPath(self):
+        """Go in circles until a path is found."""
+        while self.agent.distances[CENTER_ID] < CLOSE_THRESHOLD:
+            self.agent.driveMotors(0.05, -0.05)
             self.agent.readSensors()
+        self.moveNoCorrection()
+
+    def moveNoCorrection(self, it=13):
+        """Move the robot forward without any correction."""
+        for _ in range(it):
+            self.agent.driveMotors(0.15, 0.15)
+            self.agent.readSensors()
+
+    def rotate180(self):
+        for _ in range(11):
+            self.agent.driveMotors(0.143, -0.143)
+            self.agent.readSensors()
+
+    def makeSideTurn(self, direction):
+        for i in range(13):
+            if direction == LEFT_ID:
+                self.agent.driveMotors(
+                    SPEED - SPEED_TURN - i * 0.01, SPEED + SPEED_TURN + i * 0.01
+                )
+            else:
+                self.agent.driveMotors(
+                    SPEED + SPEED_TURN + i * 0.01, SPEED - SPEED_TURN - i * 0.01
+                )
+
+            self.agent.readSensors()
+
+        # self.stop()
+        # self.agent.readSensors()
+        # exit()

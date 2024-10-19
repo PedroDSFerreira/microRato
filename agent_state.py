@@ -19,7 +19,7 @@ class WaitState(BaseState):
             agent.setVisitingLed(False)
         if agent.measures.returningLed:
             agent.state = ReturnState()
-        agent.driveMotors(0.0, 0.0)
+        agent.movement_controller.stop()
 
 
 class ReturnState(BaseState):

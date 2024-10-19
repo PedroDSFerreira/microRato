@@ -1,28 +1,29 @@
 import statistics
 from collections import deque
 
-BUFFER_SIZE = 3
+BUFFER_SIZE = 2  # Fixed buffer size of 2
+THRESHOLD = 0.7  # Threshold for anomaly detection
 
 
 class SensorBuffer:
     def __init__(self, sensor_count=4):
         self.buffers = [deque(maxlen=BUFFER_SIZE) for _ in range(sensor_count)]
 
-    def add_sample(self, sensor_id, value):
+    def add(self, sensor_id, value):
         """Add a new sensor reading to the buffer."""
         self.buffers[sensor_id].append(value)
 
-    def get_parsed_value(self, sensor_id, threshold=0.1):
-        """Return the mean of the latest values, removing anomalies."""
+    def get(self, sensor_id):
+        """Return the median of the last two values if they're close, otherwise the previous value."""
         buffer = list(self.buffers[sensor_id])
-        if len(buffer) == 0:
-            return None
+        if len(buffer) < 2:
+            return buffer[0] if buffer else None
 
-        mean_value = statistics.mean(buffer)
+        previous_value, current_value = buffer
 
-        # Remove values that deviate too much from the mean
-        filtered_values = [v for v in buffer if abs(v - mean_value) <= threshold]
+        # If the values deviate too much, return the previous value
+        if abs(current_value - previous_value) > THRESHOLD:
+            return previous_value
 
-        if len(filtered_values) == 0:
-            return mean_value  # Return mean if all values are considered anomalies
-        return statistics.mean(filtered_values)
+        # If the values are close, return the median
+        return statistics.median(buffer)

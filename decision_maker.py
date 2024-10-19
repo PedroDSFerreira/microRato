@@ -1,9 +1,4 @@
-CENTER_ID = 0
-LEFT_ID = 1
-RIGHT_ID = 2
-BACK_ID = 3
-FAR_THRESHOLD = 0.9
-CLOSE_THRESHOLD = 0.2
+from agent import CENTER_ID, CLOSE_THRESHOLD, FAR_THRESHOLD, LEFT_ID, RIGHT_ID
 
 
 class DecisionMaker:
@@ -11,37 +6,59 @@ class DecisionMaker:
         self.agent = agent
 
     def decideNextMove(self):
+        """Decide the next move based on the sensor readings."""
+        # if self.panicMode():
+        #     print("Panic mode activated")
+        # self.agent.movement_controller.findPath()
         if self.isDeadEnd():
-            self.agent.movement_controller.makeUTurn()
+            print("Dead end detected")
+            self.agent.movement_controller.rotate180()
         elif self.isCrossroad():
+            print("Crossroad detected")
             self.handleCrossroad()
-        elif self.isRightTurn():
-            self.agent.movement_controller.makeRightTurn()
-        elif self.isLeftTurn():
-            self.agent.movement_controller.makeLeftTurn()
+        elif self.isOpenRight():
+            print("Making a right turn")
+            self.agent.movement_controller.makeSideTurn(RIGHT_ID)
+        elif self.isOpenLeft():
+            print("Making a left turn")
+            self.agent.movement_controller.makeSideTurn(LEFT_ID)
         else:
             self.agent.movement_controller.moveForward()
 
+    def panicMode(self):
+        """Check if the robot is about to hit a wall"""
+        return (
+            self.agent.distances[CENTER_ID] < CLOSE_THRESHOLD
+            or self.agent.distances[LEFT_ID] < CLOSE_THRESHOLD
+            or self.agent.distances[RIGHT_ID] < CLOSE_THRESHOLD
+        )
+
     def isCrossroad(self):
         """Detect if the robot is at a crossroad (left and right are both open)."""
-        left_dist = self.agent.distances[LEFT_ID]
-        right_dist = self.agent.distances[RIGHT_ID]
-        return left_dist > FAR_THRESHOLD and right_dist > FAR_THRESHOLD
+        return self.isOpenLeft() and self.isOpenRight() and self.isOpenFront()
 
-    def isRightTurn(self):
+    def isOpenRight(self):
         """Check if the robot should turn right."""
         right_dist = self.agent.distances[RIGHT_ID]
         return right_dist > FAR_THRESHOLD
 
-    def isLeftTurn(self):
+    def isOpenLeft(self):
         """Check if the robot should turn left."""
         left_dist = self.agent.distances[LEFT_ID]
         return left_dist > FAR_THRESHOLD
 
+    def isOpenFront(self):
+        """Check if the robot should move forward."""
+        front_dist = self.agent.distances[CENTER_ID]
+        return front_dist > FAR_THRESHOLD
+
     def isDeadEnd(self):
         """Check if the robot is at a dead end."""
-        front_dist = self.agent.distances[CENTER_ID]
-        return front_dist < CLOSE_THRESHOLD
+        return (
+            (not self.isOpenLeft())
+            and (not self.isOpenLeft())
+            and (not self.isOpenFront())
+        )
 
     def handleCrossroad(self):
         """Handles decision-making at a crossroad."""
